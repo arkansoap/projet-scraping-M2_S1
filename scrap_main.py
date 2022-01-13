@@ -14,11 +14,12 @@ from selenium.webdriver.common.by import By
 from dataclasses import dataclass
 import time
 import numpy as np
-from selenium.common.exceptions import WebDriverException 
+from selenium.common.exceptions import ElementClickInterceptedException, WebDriverException, StaleElementReferenceException 
 from bs4 import BeautifulSoup as BS
 from serde import serialize, deserialize
 from serde.json import to_json, from_json
 import re
+from requests import get 
 
 nav = webdriver.Chrome()
 
@@ -67,17 +68,20 @@ class PageElem:
     def open_site(self):
         """ouverture de la page web"""   
         nav.get(self.adresse)
-        bouton = nav.find_element(By.XPATH, self.bouton_accept)
-        bouton.click()
+        time.sleep(10)
+        if self.bouton_accept is not None:
+            bouton = nav.find_element(By.XPATH, self.bouton_accept)
+            bouton.click()
 
     def affichage_all_item(self):
         """affichage de toutes les cellules"""
         bouton = nav.find_element(By.XPATH, self.bouton_affichage)
-        while bouton.is_displayed():
+        while  bouton.is_displayed() and bouton.is_enabled():
             try:
                 bouton.click()
-            except WebDriverException:
-                print("Element is not clickable")
+            except (StaleElementReferenceException, WebDriverException, ElementClickInterceptedException):
+                 print("Element is not clickable")
+                 pass
 
     def recup_cellule(self)->list:
         """récupération des cellules dans une liste"""
@@ -134,19 +138,29 @@ class CellElem:
             texte = str(cell)
             texte = texte.replace("\n", " ")
             motif = re.compile(self.re_desc)
-            description = motif.findall(texte)
+            description = motif.findall(texte)[0]
             motif = re.compile(self.re_prix)
-            prix = motif.findall(texte)
-            #prix = int(prix)
+            prix = motif.findall(texte)[0]
+            prix = int(prix.replace("\u202f",""))
             motif = re.compile(self.re_lieu)
-            lieu = motif.findall(texte)
+            lieu = motif.findall(texte)[0]
+            lieu = lieu.replace(" ", "")
             motif = re.compile(self.re_duree)
-            duree = motif.findall(texte)
-            #duree = int(duree)
+            duree = motif.findall(texte)[0]
+            duree = int(duree)
             motif = re.compile(self.re_diff)
-            diff = motif.findall(texte)
-            motif = re.compile(self.re_theme)
-            theme = motif.findall(texte)
+            diff = motif.findall(texte)[0]
+            if pageElem.nom_site == "Explora1":
+                    adresse="https://www.explora-project.com" + cell.attrs["href"]
+                    full_page = get(adresse)
+                    code = full_page.content.decode("utf8")
+                    texte = str(code)
+                    motif = re.compile("data-flag(.*?)div")
+                    liste = motif.findall(texte)
+                    theme = liste[-1][2:-2] 
+            else:
+                motif = re.compile(self.re_theme)
+                theme = motif.findall(texte)[0]
             results.append(
                 Sejour(
                     description,
@@ -159,10 +173,10 @@ class CellElem:
             )
         return results
 
-    def save_sejours_to_Json(self,pageElem):
+    def save_sejours_to_Json(self,pageElem:PageElem):
         """sauvegarde de la liste des séjours au format JSON"""
         results = self.catch_info(pageElem)
-        with open("backup_decathlonTest.json", "w") as fichier:
+        with open(f"backup_{pageElem.nom_site}.json", "w") as fichier:
             fichier.write(to_json(results))
 
 def scraping(pageElem:PageElem, cellsElem:CellElem):

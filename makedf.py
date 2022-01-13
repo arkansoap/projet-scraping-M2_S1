@@ -9,7 +9,7 @@ from scrap_main import Sejour, PageElem, CellElem
 from dataclasses import dataclass
 
 
-liste_backup = ["backup_decathlon.json", "backup_explora.json", "backup_terdav.json", "backup_terdav2.json"]
+liste_backup = ["backup_Decathlon.json", "backup_explora.json", "backup_terdav.json", "backup_terdav2.json"]
 # voir si on peut récup les fichier JSON du dossier ds une liste directement 
 # pour ne pas avoir à changer la liste manuellement
 region = ["auvergne", "rhone", "alpes", "pyrénées", "massif central", "sud-ouest", "provence", "bourogne", "bretagne", "normandie", "loire", "france", "occitanie", "normandes", "autres régions"]
@@ -39,8 +39,8 @@ class Df:
     #     df = pd.DataFrame(data=assemblage_liste_sejour(), columns= columns)
     #     return df 
 
-    def __call__(self):
-        return self
+    # def __call__(self):
+    #     return self
 
     def make_lower(self):
         self.df["theme"] = self.df["theme"].str.lower()
@@ -90,4 +90,14 @@ class Df:
         self.df["theme"] = self.df["theme"].astype("category")
 
     def save_dataframe(self):
-        self.df.to_pickle("my_df.pkl")
+        self.df.to_pickle("my_dataframe.pkl")
+
+    def all_in_one(self):
+        self.make_lower()
+        self.theme_with_desc()
+        self.level_diff()
+        self.level_lieu()
+        self.level_theme()
+        self.nettoyage()
+        self.transfo_var()
+        self.save_dataframe()
