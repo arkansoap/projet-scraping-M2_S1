@@ -1,7 +1,7 @@
 """Scraping Main
 
 Cette librairie a pour but d'automatiser le scraping de sites proposant des séjours itinérant basés sur la 
-randonnée. Cette librairie est encore largement perfectible, elle est surtout adaptée au 3 sites (decathlon,
+randonnée. Cette librairie est encore largement perfectible, elle est surtout adaptée -à l'heure actuelle- au 3 sites (decathlon,
 explora, et terre d'avenir). Des améliorations sont à apporter. L'utilisateur doit savoir rechercher certains
 éléments dans le code source de la page afin d'identifier les éléments. La maitrise des Xpath et des expressions
 régulière est donc requise. 
@@ -136,6 +136,7 @@ class CellElem:
         cells = pageElem.recup_cellule()
         for cell in cells:
             texte = str(cell)
+            texte.replace("&#231;", "ç").replace("&#224;", "à").replace("&#39", "'").replace("&#233;", "é")
             texte = texte.replace("\n", " ")
             motif = re.compile(self.re_desc)
             description = motif.findall(texte)[0]

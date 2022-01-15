@@ -8,8 +8,7 @@ import pandas as pd
 from scrap_main import Sejour, PageElem, CellElem
 from dataclasses import dataclass
 
-
-liste_backup = ["backup_Decathlon.json", "backup_explora.json", "backup_terdav.json", "backup_terdav2.json"]
+liste_backup = ["backup_Decathlon.json", "backup_Explora1.json", "backup_Terdav1.json", "backup_terdav2.json"]
 # voir si on peut récup les fichier JSON du dossier ds une liste directement 
 # pour ne pas avoir à changer la liste manuellement
 region = ["auvergne", "rhone", "alpes", "pyrénées", "massif central", "sud-ouest", "provence", "bourogne", "bretagne", "normandie", "loire", "france", "occitanie", "normandes", "autres régions"]
@@ -33,32 +32,27 @@ class Df:
     columns = ['description', 'prix', 'lieux', 'duree', 'diff', 'theme']
     df = pd.DataFrame(data=assemblage_liste_sejour(), columns= columns)
 
-    # def build_df():
-    #     """construction du dataframe"""
-    #     columns = ['description', 'prix', 'lieux', 'duree', 'diff', 'theme']
-    #     df = pd.DataFrame(data=assemblage_liste_sejour(), columns= columns)
-    #     return df 
-
-    # def __call__(self):
-    #     return self
-
-    def make_lower(self):
+    def _make_lower(self):
+        """Transforme tous les contenus en minuscule"""
         self.df["theme"] = self.df["theme"].str.lower()
         self.df["description"] = self.df["description"].str.lower()
         self.df["lieux"] = self.df["lieux"].str.lower()
 
-    def theme_with_desc(self):
+    def _theme_with_desc(self):
+        """Utilise la description pour trouver les bonnes modalités des variables catégorielles"""
         for i in range(0, len(self.df)):
             if "ski" in self.df.iloc[i]["description"]:
                 self.df.loc[i,"theme"] = "activités nordique"
         # possibilité d'en rajouter
 
-    def level_diff(self):
-        self.df.loc[(self.df["diff"] ==1)|(self.df["diff"] ==2)|(self.df["diff"] =="niveau 1"), "diff"] = "Découverte"
-        self.df.loc[(self.df["diff"] ==3)|(self.df["diff"] =="niveau 2"), "diff"] = "Initié"
-        self.df.loc[(self.df["diff"] ==4)|(self.df["diff"] ==5)|(self.df["diff"] == "niveau 3")|(self.df["diff"] == "niveau 4"), "diff"] = "Confirmé"
+    def _level_diff(self):
+        """redéfinit les modalités de la variable diff"""
+        self.df.loc[(self.df["diff"] =='1')|(self.df["diff"] =='2')|(self.df["diff"] =="niveau 1"), "diff"] = "Découverte"
+        self.df.loc[(self.df["diff"] =='3')|(self.df["diff"] =="niveau 2"), "diff"] = "Initié"
+        self.df.loc[(self.df["diff"] =='4')|(self.df["diff"] =='5')|(self.df["diff"] == "niveau 3")|(self.df["diff"] == "niveau 4"), "diff"] = "Confirmé"
 
-    def level_theme(self):
+    def _level_theme(self):
+        """redéfinit les modalités de la variable theme"""
         self.df.loc[(self.df["theme"] =="randonnée")|(self.df["theme"] =="trek")|(self.df["theme"] =="auberge")|(self.df["theme"] =="hôtel")|(self.df["theme"] =="refuge")|(self.df["theme"] =="découverte"), "theme"] = "rando nature"
         self.df.loc[(self.df["theme"] == "vélo")|(self.df["theme"] == "vtt")|(self.df["theme"] == "vélo de route"), "theme"] = "cyclo"
         self.df.loc[(self.df["theme"] == "randonnée avec âne")|(self.df["theme"] == "chiens de traîneau")|(self.df["theme"] == "cani rando"), "theme"] = "ani-rando"
@@ -67,7 +61,8 @@ class Df:
             if "rando nature" not in self.df.iloc[i]["theme"] and "cyclo" not in self.df.iloc[i]["theme"] and "activités nordique" not in self.df.iloc[i]["theme"] and "multi-activités" not in self.df.iloc[i]["theme"] and "ani-rando" not in self.df.iloc[i]["theme"]: 
                 self.df.loc[i,"theme"] = "multi-activités"
 
-    def level_lieu(self):
+    def _level_lieu(self):
+        """redéfinit les modalités de la variable theme"""
         for i in range(0, len(self.df)):
             for str in region:
                 if str in self.df.loc[i,"lieux"]:
@@ -79,25 +74,29 @@ class Df:
             if self.df.loc[i, "lieux"] != "metropole" and self.df.loc[i, "lieux"] != "dest_proche" and self.df.loc[i, "lieux"] != "" :
                 self.df.loc[i, "lieux"] = "dest_éloignée"
 
-    def nettoyage(self):
+    def _nettoyage(self):
+        """nettoyage du dataframe"""
         self.df.drop(self.df[self.df["prix"]==0].index, axis = 0, inplace=True)
         self.df.drop(self.df[self.df["lieux"]==""].index, axis = 0, inplace=True)
         self.df = self.df.reset_index(drop=True)
 
-    def transfo_var(self):
+    def _transfo_var(self):
+        """transformation des variables de types object à category"""
         self.df["lieux"] = self.df["lieux"].astype("category")
         self.df["diff"] = self.df["diff"].astype("category")
         self.df["theme"] = self.df["theme"].astype("category")
 
-    def save_dataframe(self):
+    def _save_dataframe(self):
+        "sauvegarde du dataframe en format pkl"
         self.df.to_pickle("my_dataframe.pkl")
 
     def all_in_one(self):
-        self.make_lower()
-        self.theme_with_desc()
-        self.level_diff()
-        self.level_lieu()
-        self.level_theme()
-        self.nettoyage()
-        self.transfo_var()
-        self.save_dataframe()
+        """fonction pour l'utilisateur qui réalise toutes les actions nécessaire sur le dataframe"""
+        self._make_lower()
+        self._theme_with_desc()
+        self._level_diff()
+        self._level_lieu()
+        self._level_theme()
+        self._nettoyage()
+        self._transfo_var()
+        self._save_dataframe()
