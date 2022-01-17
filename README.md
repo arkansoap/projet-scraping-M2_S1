@@ -9,7 +9,7 @@
 
 ## Remarque
 
-Ce dépot est encore largement perfectible, notre but est de créer un petite application 
+Ce dépot est encore largement perfectible, mon objectif est de créer un petite application 
 qui soit utilisable par un utlisateur lambda, ce qui n'est actuellement pas le cas. 
 
 ## Pense bète pour questions au professeur
