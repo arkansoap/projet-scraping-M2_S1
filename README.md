@@ -2,7 +2,7 @@
 
 ## Contenu du dépot
 
-- les modules scrap_main.py, makedf.py
+- les modules scrap_main.py, makedf.py, fit_valid.py
 - un fichier test_lib.ipynb qui explique et montre l'utilisation des modules
 - les backups des listes de séjours en JSON
 - un backup du df en .pkl
