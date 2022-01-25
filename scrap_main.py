@@ -76,6 +76,7 @@ class PageElem:
     def affichage_all_item(self):
         """affichage de toutes les cellules"""
         bouton = nav.find_element(By.XPATH, self.bouton_affichage)
+        #compteur = 0
         while  bouton.is_displayed() and bouton.is_enabled():
             try:
                 bouton.click()
